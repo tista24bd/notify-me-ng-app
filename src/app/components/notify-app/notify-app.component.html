@@ -1,0 +1,43 @@
+<div class="app-body">
+    <div class="custom-card">
+        <div class="custom-main">
+            <div class="d-none" [ngClass]="drawerState == 'hidden'? '': 'drawer-div' ">
+                <p>{{message}}</p>
+            </div>
+            <div class="heading">Get Notified (<i class="bi bi-bell"></i>)</div>
+            <input [ngClass]="{'disabled': !isStopped}" #minuteInput type="text" name="input" id="inp" placeholder="In minutes">
+            <button [ngClass]="{'disabled': !isStopped}" role="button" class="btn-start" (click)="startCountdown($event)">Start</button>
+            <div class="digital-clock">
+                <div class="hour-custom-bg">{{ hours | number: '2.0' }}</div>
+                <div>:</div>
+                <div class="hour-custom-bg">{{ minutes | number: '2.0' }}</div>
+                <div>:</div>
+                <div class="hour-custom-bg">{{ seconds | number: '2.0' }}</div>
+            </div>
+            <div class="play-pause" [ngClass]="{'disabled': isStopped}">
+                <i *ngIf="!isPaused && !isStopped" class="bi bi-pause-circle me-1 pause"
+                    [ngClass]="{'red-icon': isPaused}" (click)="pauseTimer($event)">
+                </i>
+                <i *ngIf="isPaused || isStopped" class="bi bi-play-circle me-1 play" (click)="pauseTimer($event)">
+                </i>
+                <i *ngIf="!isStopped" class="bi bi-stop-circle stop" (click)="stopTimer($event)"></i>
+            </div>
+            <div class="music-container ">
+                <div class="grey-background">
+                    <i class="bi bi-music-note-list me-1" [ngClass]="{'vibrate': isMusicPlaying}"></i>
+                    <p class="mb-0">{{musicName}}</p>
+                    <i  *ngIf="!musicAdded" role="button" class="bi bi-paperclip ms-1" (click)="addMusicFile($event)"></i>
+                    <i *ngIf="musicAdded" role="button" class="bi bi-x ms-1" (click)="deleteMusicFile($event)"></i>
+                </div>
+                <div class="music-custom" [ngClass]="{'disabled': !isMusicPlaying}">
+                    <i *ngIf="isMusicPaused && isMusicPaused" class="bi bi-play-circle me-1 fs-2"
+                        (click)="unPauseMusic($event)"></i>
+                    <i *ngIf="!isMusicPaused" class="bi bi-pause-circle me-1 fs-2" (click)="pauseMusic($event)"></i>
+                    <i class="bi bi-stop-circle me-1 fs-2" (click)="stopMusic($event)"></i>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
