@@ -29,7 +29,6 @@ localforage.config({
     ]),
   ],
 })
-
 export class NotifyAppComponent implements OnInit {
   musicName: string = 'music name..';
   hours: number = 0;
@@ -39,11 +38,11 @@ export class NotifyAppComponent implements OnInit {
   isPaused: boolean = false; // Track if the timer is paused
   isStopped: boolean = true; // Track if the timer is paused
   isDisabled: boolean = true;
-  audio!: any;
+  audio!: HTMLAudioElement;
   isMusicPaused: boolean = false;
   @ViewChild('minuteInput') minuteInput!: ElementRef<HTMLInputElement>;
   isMusicPlaying: boolean = false;
-  musicAdded: boolean = false; 
+  musicAdded: boolean = false;
   drawerState: 'hidden' | 'visible' = 'hidden';
   message: string = 'enter valid message ';
 
@@ -55,15 +54,15 @@ export class NotifyAppComponent implements OnInit {
 
   showDrawer(msg: string) {
     this.message = msg;
-    this.drawerState = 'visible'
+    this.drawerState = 'visible';
   }
+
   hideDrawer(msg: string) {
     this.message = msg;
-    this.drawerState = 'hidden'
-
+    this.drawerState = 'hidden';
   }
-  startCountdown(event: any) {
 
+  startCountdown(event: any) {
     const inputValue = parseFloat(this.minuteInput.nativeElement.value);
 
     if (isNaN(inputValue) || inputValue <= 0) {
@@ -129,6 +128,7 @@ export class NotifyAppComponent implements OnInit {
       this.startTimer();
     }
   }
+
   stopTimer(event: any = null) {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
@@ -139,21 +139,22 @@ export class NotifyAppComponent implements OnInit {
     this.seconds = 0;
     this.isPaused = false;
     this.isStopped = true;
-    this.message = 'Countdown finished!'
+    this.message = 'Countdown finished!';
     this.minuteInput.nativeElement.value = '';
   }
-  async loadMusicToApp() {
 
+  async loadMusicToApp() {
     try {
       const file = await localforage.getItem<File>('customMusic'); // Retrieve the file
       if (file) {
         this.audio = new Audio(URL.createObjectURL(file)); // Create an Audio object
         this.musicName = file.name;
-        this.musicAdded = true; 
+        this.musicAdded = true;
       } else {
-        let defaultFileUrl = '/media/morning_alarm.mp3'
+        const defaultFileUrl = '/media/morning_alarm.mp3';
         this.audio = new Audio(defaultFileUrl);
         this.musicName = defaultFileUrl.substring(defaultFileUrl.lastIndexOf('/') + 1);
+        this.musicAdded = false;
       }
     } catch (error) {
       console.error('Error loading music:', error);
@@ -168,9 +169,10 @@ export class NotifyAppComponent implements OnInit {
       const file = e.target.files[0];
       if (file) {
         try {
-          await localforage.setItem('customMusic', file); 
+          await localforage.setItem('customMusic', file); // Store the file
           this.musicName = file.name;
-          this.musicAdded = true; 
+          this.musicAdded = true;
+          this.audio = new Audio(URL.createObjectURL(file)); // Create an Audio object
         } catch (error) {
           console.error('Error storing file:', error);
         }
@@ -178,47 +180,52 @@ export class NotifyAppComponent implements OnInit {
     };
     input.click();
   }
+
   async deleteMusicFile(event: any = null) {
     try {
       await localforage.removeItem('customMusic');
-      let defaultFileUrl = '/media/morning_alarm.mp3'
+      const defaultFileUrl = '/media/morning_alarm.mp3';
+      this.audio = new Audio(defaultFileUrl);
       this.musicName = defaultFileUrl.substring(defaultFileUrl.lastIndexOf('/') + 1);
-      this.musicAdded = false; 
+      this.musicAdded = false;
     } catch (error) {
       console.error('Error deleting music:', error);
     }
   }
 
   playMusic() {
-    this.isMusicPlaying = true;
-    this.isMusicPaused = false;
-    this.audio.play();
-    this.audio.onended = () => {
-      this.isMusicPlaying = false;
-    };
+    if (this.audio) {
+      this.isMusicPlaying = true;
+      this.isMusicPaused = false;
+      this.audio.play();
+      this.audio.onended = () => {
+        this.isMusicPlaying = false;
+      };
+    }
   }
 
   pauseMusic(event: any) {
-    this.isMusicPaused = true;
     if (this.audio) {
       this.audio.pause();
+      this.isMusicPlaying = true;
+      this.isMusicPaused = true;
     }
   }
 
   unPauseMusic(event: any) {
-    this.isMusicPaused = false;
     if (this.audio) {
       this.audio.play();
-    }
-  }
-
-  stopMusic(event: any) {
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.currentTime = 0;
-      this.isMusicPlaying = false;
+      this.isMusicPlaying = true;
       this.isMusicPaused = false;
     }
   }
 
+  stopMusic(event: any=null) {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.currentTime = 0; // Reset playback to the start
+      this.isMusicPlaying = false;
+      this.isMusicPaused = false;
+    }
+  }
 }
