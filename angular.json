@@ -25,7 +25,8 @@
                 "glob": "**/*",
                 "input": "public",
                 "output": "/"
-              }
+              }, 
+              "src/_redirects"
             ],
             "styles": [
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
