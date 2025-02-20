@@ -45,6 +45,7 @@ export class NotifyAppComponent implements OnInit {
   musicAdded: boolean = false;
   drawerState: 'hidden' | 'visible' = 'hidden';
   message: string = 'enter valid message ';
+  endTime!: number;
 
   constructor() { }
 
@@ -66,7 +67,7 @@ export class NotifyAppComponent implements OnInit {
     const inputValue = parseFloat(this.minuteInput.nativeElement.value);
 
     if (isNaN(inputValue) || inputValue <= 0) {
-      this.showDrawer('Min can not be zero or negative');
+      this.showDrawer('Min cannot be zero or negative');
       setTimeout(() => {
         this.hideDrawer('');
         this.minuteInput.nativeElement.value = '';
@@ -74,15 +75,15 @@ export class NotifyAppComponent implements OnInit {
       return;
     }
 
-    const totalSeconds = inputValue * 60;
-    this.hours = Math.floor(totalSeconds / 3600);
-    this.minutes = Math.floor((totalSeconds % 3600) / 60);
-    this.seconds = Math.floor(totalSeconds % 60);
+    const totalMilliseconds = inputValue * 60 * 1000;
+    this.endTime = Date.now() + totalMilliseconds; // Calculate end time
+    this.isPaused = false;
+    this.isStopped = false;
+
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
     }
-    this.isPaused = false;
-    this.isStopped = false;
+
     this.startTimer();
   }
 
@@ -95,30 +96,82 @@ export class NotifyAppComponent implements OnInit {
   }
 
   updateCountdown() {
-    if (this.seconds > 0) {
-      this.seconds--;
-    } else {
-      if (this.minutes > 0) {
-        this.minutes--;
-        this.seconds = 59;
-      } else {
-        if (this.hours > 0) {
-          this.hours--;
-          this.minutes = 59;
-          this.seconds = 59;
-        } else {
-          clearInterval(this.countdownInterval);
+    const remainingTime = this.endTime - Date.now();
 
-          this.showDrawer('Countdown Completed!');
-          this.playMusic();
-          this.stopTimer();
-          setTimeout(() => {
-            this.hideDrawer('');
-          }, 2000);
-        }
-      }
+    if (remainingTime <= 0) {
+      clearInterval(this.countdownInterval);
+      this.hours = this.minutes = this.seconds = 0;
+      this.showDrawer('Countdown Completed!');
+      this.playMusic();
+      this.stopTimer();
+      setTimeout(() => {
+        this.hideDrawer('');
+      }, 2000);
+      return;
     }
+
+    this.hours = Math.floor(remainingTime / 3600000);
+    this.minutes = Math.floor((remainingTime % 3600000) / 60000);
+    this.seconds = Math.floor((remainingTime % 60000) / 1000);
   }
+
+  // startCountdown(event: any) {
+  //   const inputValue = parseFloat(this.minuteInput.nativeElement.value);
+
+  //   if (isNaN(inputValue) || inputValue <= 0) {
+  //     this.showDrawer('Min can not be zero or negative');
+  //     setTimeout(() => {
+  //       this.hideDrawer('');
+  //       this.minuteInput.nativeElement.value = '';
+  //     }, 3000);
+  //     return;
+  //   }
+
+  //   const totalSeconds = inputValue * 60;
+  //   this.hours = Math.floor(totalSeconds / 3600);
+  //   this.minutes = Math.floor((totalSeconds % 3600) / 60);
+  //   this.seconds = Math.floor(totalSeconds % 60);
+  //   if (this.countdownInterval) {
+  //     clearInterval(this.countdownInterval);
+  //   }
+  //   this.isPaused = false;
+  //   this.isStopped = false;
+  //   this.startTimer();
+  // }
+
+  // startTimer() {
+  //   this.countdownInterval = setInterval(() => {
+  //     if (!this.isPaused) {
+  //       this.updateCountdown();
+  //     }
+  //   }, 1000);
+  // }
+
+  // updateCountdown() {
+  //   if (this.seconds > 0) {
+  //     this.seconds--;
+  //   } else {
+  //     if (this.minutes > 0) {
+  //       this.minutes--;
+  //       this.seconds = 59;
+  //     } else {
+  //       if (this.hours > 0) {
+  //         this.hours--;
+  //         this.minutes = 59;
+  //         this.seconds = 59;
+  //       } else {
+  //         clearInterval(this.countdownInterval);
+
+  //         this.showDrawer('Countdown Completed!');
+  //         this.playMusic();
+  //         this.stopTimer();
+  //         setTimeout(() => {
+  //           this.hideDrawer('');
+  //         }, 2000);
+  //       }
+  //     }
+  //   }
+  // }
 
   pauseTimer(event: any) {
     this.isPaused = !this.isPaused;
@@ -220,7 +273,7 @@ export class NotifyAppComponent implements OnInit {
     }
   }
 
-  stopMusic(event: any=null) {
+  stopMusic(event: any = null) {
     if (this.audio) {
       this.audio.pause();
       this.audio.currentTime = 0; // Reset playback to the start
